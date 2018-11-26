@@ -106,10 +106,15 @@ function handleMessage(sender_psid, received_message) {
     let attachment_url = received_message.attachments[0].payload.url;
     response = {
       attachment: {
-        type: "template",
-        payload: {
-          template_type: "generic"
-        }
+        "type":"image", 
+        "payload":{
+          "url":"http://www.messenger-rocks.com/image.jpg", 
+          "is_reusable":true
+      }
+
+     }
+    }
+
       }
     };
   }
