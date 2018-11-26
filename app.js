@@ -138,6 +138,7 @@ function handlePostback(sender_psid, received_postback) {
         }
       ]
     };
+    callSendAPI(sender_psid, response);
   }
   if (payload === "yes") {
     // Set the response based on the postback payload
