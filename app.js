@@ -126,6 +126,23 @@ function handleMessage(sender_psid, received_message) {
                   payload: "no"
                 }
               ]
+            },
+            {
+              title: "Is this the right picture?",
+              subtitle: "Tap a button to answer.",
+              image_url: attachment_url,
+              buttons: [
+                {
+                  type: "postback",
+                  title: "Yess!",
+                  payload: "yes"
+                },
+                {
+                  type: "postback",
+                  title: "Nso!",
+                  payload: "no"
+                }
+              ]
             }
           ]
         }
