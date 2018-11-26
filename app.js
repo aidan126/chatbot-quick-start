@@ -108,7 +108,8 @@ function handleMessage(sender_psid, received_message) {
       attachment: {
         type: "audio",
         payload: {
-          url: "https://www.rong-chang.gcom/speak/audio/feveryday01.mp3",
+          url: "https://www.rong-chang.com/speak/audio/feveryday01.mp3",
+
           is_reusable: true
         }
       }
