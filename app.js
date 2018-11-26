@@ -106,10 +106,9 @@ function handleMessage(sender_psid, received_message) {
     let attachment_url = received_message.attachments[0].payload.url;
     response = {
       attachment: {
-        type: "image",
+        type: "audio",
         payload: {
-          url:
-            "https://cdn1.iconfinder.com/data/icons/iconza-circle-social/64/697057-facebook-512.png",
+          url: "https://www.rong-chang.gcom/speak/audio/feveryday01.mp3",
           is_reusable: true
         }
       }
