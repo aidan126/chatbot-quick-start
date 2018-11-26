@@ -106,10 +106,9 @@ function handleMessage(sender_psid, received_message) {
     let attachment_url = received_message.attachments[0].payload.url;
     response = {
       attachment: {
-        type: "audio",
+        type: "Audio",
         payload: {
-          url: "https://www.rong-chang.com/speak/audio/feveryday01.mp3",
-
+          url: "http://www.messenger-rocks.com/image.jpg",
           is_reusable: true
         }
       }
@@ -126,8 +125,22 @@ function handlePostback(sender_psid, received_postback) {
   // Get the payload for the postback
   let payload = received_postback.payload;
 
-  // Set the response based on the postback payload
+  if (payload === "get_started") {
+    response = {
+      greeting: [
+        {
+          locale: "default",
+          text: "Hello!"
+        },
+        {
+          locale: "en_US",
+          text: "Timeless apparel for the masses."
+        }
+      ]
+    };
+  }
   if (payload === "yes") {
+    // Set the response based on the postback payload
     response = { text: "Thanks!" };
   } else if (payload === "no") {
     response = { text: "Oops, try sending another image." };
