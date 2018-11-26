@@ -108,7 +108,8 @@ function handleMessage(sender_psid, received_message) {
       attachment: {
         type: "image",
         payload: {
-          url: "http://www.messenger-rocks.com/image.jpg",
+          url:
+            "https://cdn1.iconfinder.com/data/icons/iconza-circle-social/64/697057-facebook-512.png",
           is_reusable: true
         }
       }
