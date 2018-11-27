@@ -127,16 +127,7 @@ function handlePostback(sender_psid, received_postback) {
 
   if (payload === "get_started") {
     response = {
-      greeting: [
-        {
-          locale: "default",
-          text: "Hello!"
-        },
-        {
-          locale: "en_US",
-          text: "Timeless apparel for the masses."
-        }
-      ]
+      text: "Hello!"
     };
     callSendAPI(sender_psid, response);
   }
