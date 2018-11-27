@@ -23,8 +23,12 @@
 //const PAGE_ACCESS_TOKEN = "process.env.PAGE_ACCESS_TOKEN";
 const PAGE_ACCESS_TOKEN =
   "EAAFus9ZCYowABAPtHvDZBuPqMttCacGdEaoQhjI6USUAxHNOwhmJ3SIkpXaoT6aQ8R4ba6efRVRGKpG0GQIWZAdv9DZChygKAtUFLZB3f6GC6hOQGssR1o7AXzCsi2EIMC7C0OAoGhULby3zelXRAy0DTqt1bYdJbrPkMKDj1Tyd91N0uA6j7ISLD8TZB34ZAYZD";
+//apiai.ai token
+const CLIENT_ACCESS_TOKEN = "ec0cc3c162e34ad9be6569757f3d6a69";
 // Imports dependencies and set up http server
 const request = require("request"),
+  apiaiApp = require("apiai")(CLIENT_ACCESS_TOKEN),
+  tools = require("./tools"),
   express = require("express"),
   body_parser = require("body-parser"),
   app = express().use(body_parser.json()); // creates express http server
@@ -91,16 +95,23 @@ app.get("/webhook", (req, res) => {
 
 function handleMessage(sender_psid, received_message) {
   let response;
+  let apiai = apiaiApp.textRequest(received_message.text, {
+    sessionId: "conversation-partner" // use any arbitrary id
+  });
 
   // Checks if the message contains text
   if (received_message.text) {
     // Create the payload for a basic text message, which
     // will be added to the body of our request to the Send API
-    response = {
-      text: `You sent the message: "${
-        received_message.text
-      }". Now send me an attachment!`
-    };
+
+    apiai.on("response", responsez => {
+      // Got a response from api.ai. Let's POST to Facebook Messenger
+      response = "responsez.result.fulfillment.speech";
+    });
+
+    apiai.on("error", error => {
+      console.log(error);
+    });
   } else if (received_message.attachments) {
     // Get the URL of the message attachment
     let attachment_url = received_message.attachments[0].payload.url;
@@ -117,6 +128,7 @@ function handleMessage(sender_psid, received_message) {
 
   // Send the response message
   callSendAPI(sender_psid, response);
+  apiai.end();
 }
 
 function handlePostback(sender_psid, received_postback) {
@@ -125,12 +137,6 @@ function handlePostback(sender_psid, received_postback) {
   // Get the payload for the postback
   let payload = received_postback.payload;
 
-  if (payload === "get_started") {
-    response = {
-      text: "Hello!"
-    };
-    callSendAPI(sender_psid, response);
-  }
   if (payload === "yes") {
     // Set the response based on the postback payload
     response = { text: "Thanks!" };
