@@ -20,8 +20,9 @@
  */
 
 "use strict";
-//const PAGE_ACCESS_TOKEN = "process.env.PAGE_ACCESS_TOKEN";
+require("dotenv").config();
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+
 // Imports dependencies and set up http server
 const request = require("request"),
   express = require("express"),
@@ -45,7 +46,7 @@ app.post("/webhook", (req, res) => {
 
       // Get the sender PSID
       let sender_psid = webhook_event.sender.id;
-      console.log("Sender ID: " + sender_psid);
+      //   console.log("Sender ID: " + sender_psid);
 
       // Check if the event is a message or postback and
       // pass the event to the appropriate handler function
@@ -66,7 +67,6 @@ app.post("/webhook", (req, res) => {
 // Accepts GET requests at the /webhook endpoint
 app.get("/webhook", (req, res) => {
   /** UPDATE YOUR VERIFY TOKEN **/
-  //const VERIFY_TOKEN = "<YOUR VERIFY TOKEN>";
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 
   // Parse params from the webhook verification request
@@ -105,10 +105,28 @@ function handleMessage(sender_psid, received_message) {
     let attachment_url = received_message.attachments[0].payload.url;
     response = {
       attachment: {
-        type: "Audio",
+        type: "template",
         payload: {
-          url: "http://www.messenger-rocks.com/image.jpg",
-          is_reusable: true
+          template_type: "generic",
+          elements: [
+            {
+              title: "Is this the right picture?",
+              subtitle: "Tap a button to answer.",
+              image_url: attachment_url,
+              buttons: [
+                {
+                  type: "postback",
+                  title: "Yes!",
+                  payload: "yes"
+                },
+                {
+                  type: "postback",
+                  title: "No!",
+                  payload: "no"
+                }
+              ]
+            }
+          ]
         }
       }
     };
@@ -119,7 +137,7 @@ function handleMessage(sender_psid, received_message) {
 }
 
 function handlePostback(sender_psid, received_postback) {
-  console.log("ok");
+  console.log("enter handle postback function");
   let response;
   // Get the payload for the postback
   let payload = received_postback.payload;
@@ -159,7 +177,7 @@ function callSendAPI(sender_psid, response) {
     },
     (err, res, body) => {
       if (!err) {
-        console.log("message sent!");
+        console.log("message sent!\n");
       } else {
         console.error("Unable to send message:" + err);
       }
