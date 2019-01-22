@@ -23,24 +23,39 @@
 require("dotenv").config();
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
+const pin = require("./process_in.js");
 // Imports dependencies and set up http server
 const request = require("request"),
   express = require("express"),
   body_parser = require("body-parser"),
   app = express().use(body_parser.json()); // creates express http server
 
+var fs = require("fs");
+var path = require("path");
+
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 1337, () => console.log("webhook is listening"));
+
+app.use(function(req, res, next) {
+  req.start = new Date().getTime();
+  console.log(req.start);
+  next();
+});
+
+// route  here
 
 // Accepts POST requests at /webhook endpoint
 app.post("/webhook", (req, res) => {
   // Parse the request body from the POST
   let body = req.body;
+  // Return a '200 OK' response to all events
+  res.status(200).send("EVENT_RECEIVED");
 
   // Check the webhook event is from a Page subscription
   if (body.object === "page") {
     body.entry.forEach(function(entry) {
       // Gets the body of the webhook event
+      console.log(entry);
       let webhook_event = entry.messaging[0];
       console.log(webhook_event);
 
@@ -51,13 +66,12 @@ app.post("/webhook", (req, res) => {
       // Check if the event is a message or postback and
       // pass the event to the appropriate handler function
       if (webhook_event.message) {
+        pin.ex1(sender_psid, webhook_event.message);
         handleMessage(sender_psid, webhook_event.message);
       } else if (webhook_event.postback) {
         handlePostback(sender_psid, webhook_event.postback);
       }
     });
-    // Return a '200 OK' response to all events
-    res.status(200).send("EVENT_RECEIVED");
   } else {
     // Return a '404 Not Found' if event is not from a page subscription
     res.sendStatus(404);
@@ -90,16 +104,28 @@ app.get("/webhook", (req, res) => {
 
 function handleMessage(sender_psid, received_message) {
   let response;
-
+  let formData;
   // Checks if the message contains text
   if (received_message.text) {
     // Create the payload for a basic text message, which
     // will be added to the body of our request to the Send API
-    response = {
-      text: `You sent the message: "${
-        received_message.text
-      }". Now send me an attachment!`
-    };
+
+    if (received_message.text == "audio") {
+      var filepath = path.join(__dirname, "output.mp3");
+      console.log(filepath);
+      // fs.readFile(filepath, function(err, data) {
+      //   if (err) throw err;
+      //   console.log("ok");
+      // });
+      let type = "audio";
+      formData = sendAttachment(sender_psid, filepath, type);
+    } else {
+      response = {
+        text: `You sent the message: "${
+          received_message.text
+        }". Now send me an attachment!`
+      };
+    }
   } else if (received_message.attachments) {
     // Get the URL of the message attachment
     let attachment_url = received_message.attachments[0].payload.url;
@@ -133,7 +159,7 @@ function handleMessage(sender_psid, received_message) {
   }
 
   // Send the response message
-  callSendAPI(sender_psid, response);
+  callSendAPI(sender_psid, response, formData);
 }
 
 function handlePostback(sender_psid, received_postback) {
@@ -158,7 +184,7 @@ function handlePostback(sender_psid, received_postback) {
   callSendAPI(sender_psid, response);
 }
 
-function callSendAPI(sender_psid, response) {
+function callSendAPI(sender_psid, response, attatchment) {
   // Construct the message body
   let request_body = {
     recipient: {
@@ -167,13 +193,16 @@ function callSendAPI(sender_psid, response) {
     message: response
   };
 
+  if (attatchment) request_body = true;
+
   // Send the HTTP request to the Messenger Platform
   request(
     {
       uri: "https://graph.facebook.com/v2.6/me/messages",
       qs: { access_token: PAGE_ACCESS_TOKEN },
       method: "POST",
-      json: request_body
+      json: request_body,
+      formData: attatchment
     },
     (err, res, body) => {
       if (!err) {
@@ -183,4 +212,51 @@ function callSendAPI(sender_psid, response) {
       }
     }
   );
+}
+
+function callSendAPIAttachment(messageData, formData) {
+  // // Construct the message body
+  // let request_body = {
+  //   recipient: {
+  //     id: sender_psid
+  //   },
+  //   message: response
+  // };
+
+  // Send the HTTP request to the Messenger Platform
+  request(
+    {
+      uri: "https://graph.facebook.com/v2.6/me/messages",
+      qs: { access_token: PAGE_ACCESS_TOKEN },
+      method: "POST",
+      json: messageData,
+      formData: formData
+    },
+    (err, res, body) => {
+      if (!err) {
+        console.log("message sent!\n");
+      } else {
+        console.error("Unable to send message:" + err);
+      }
+    }
+  );
+}
+
+function sendAttachment(sender_psid, fileName, type) {
+  var fileReaderStream = fs.createReadStream(fileName);
+  var formData = {
+    recipient: JSON.stringify({
+      id: sender_psid
+    }),
+    message: JSON.stringify({
+      attachment: {
+        type: type,
+        payload: {
+          is_reusable: false
+        }
+      }
+    }),
+    filedata: fileReaderStream
+  };
+  return formData;
 }
